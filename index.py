@@ -1,16 +1,12 @@
 from flask import Flask, request, jsonify
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    jwt_required
-)
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from datetime import datetime
 import sqlite3
 
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "change_to_your_jwt_secret_key"
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 7200
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 7200
 jwt = JWTManager(app)
 
 
@@ -61,11 +57,12 @@ def create_route():
     data = request.get_json()
     origin = data.get("origin")
     destination = data.get("destination")
-    
+
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO routes (origin, destination) VALUES (?, ?)",(origin, destination),
+            "INSERT INTO routes (origin, destination) VALUES (?, ?)",
+            (origin, destination),
         )
         connection.commit()
     return jsonify(message="route created successful"), 201
@@ -81,14 +78,9 @@ def routes():
         records = []
         for payment in payments:
             records.append(
-                {
-                    "id": payment[0],
-                    "origin": payment[1],
-                    "destination": payment[2]
-                }
+                {"id": payment[0], "origin": payment[1], "destination": payment[2]}
             )
         return jsonify(records), 200
-
 
 
 @app.route("/api/create_payment", methods=["POST"])
@@ -115,22 +107,33 @@ def check_plate_number():
     plate_number = request.get_json().get("plate_number")
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM payment WHERE plate_number = ? AND status = ?", (plate_number, False))
+        cursor.execute(
+            "SELECT * FROM payment WHERE plate_number = ? AND status = ?",
+            (plate_number, False),
+        )
         payment = cursor.fetchone()
         if payment:
-            cursor.execute('UPDATE payment SET status = ? WHERE id = ?', (True, payment[0]))
+            cursor.execute(
+                "UPDATE payment SET status = ? WHERE id = ?", (True, payment[0])
+            )
             connection.commit()
-            return jsonify(payment={
-                    "id": payment[0],
-                    "plate_number": payment[1],
-                    "amount": payment[2],
-                    "route_id": payment[3],
-                    "status": payment[4],
-                    "date": payment[5],
-                }, message="successful"), 200
+            return (
+                jsonify(
+                    payment={
+                        "id": payment[0],
+                        "plate_number": payment[1],
+                        "amount": payment[2],
+                        "route_id": payment[3],
+                        "status": payment[4],
+                        "date": payment[5],
+                    },
+                    message="successful",
+                ),
+                200,
+            )
         else:
             return jsonify(message="No valid payment available!"), 401
-        
+
 
 @app.route("/api/all_payments", methods=["GET"])
 @jwt_required()
@@ -154,17 +157,16 @@ def payments():
         return jsonify(records), 200
 
 
-@app.route('/delete', methods=['DELETE'])
+@app.route("/delete", methods=["DELETE"])
 @jwt_required()
 def delete_payment():
     id = request.get_json().get("id")
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
-        cursor.execute('DELETE FROM payment WHERE id = ?', (id,))
+        cursor.execute("DELETE FROM payment WHERE id = ?", (id,))
         connection.commit()
 
-    return jsonify(message='User data deleted successfully'), 200
-
+    return jsonify(message="User data deleted successfully"), 200
 
 
 if __name__ == "__main__":
