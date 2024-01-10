@@ -163,10 +163,19 @@ def delete_payment():
     id = request.get_json().get("id")
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM payment WHERE id = ?", (id,))
-        connection.commit()
-
-    return jsonify(message="User data deleted successfully"), 200
+        cursor.execute(
+            "SELECT * FROM payment WHERE id = ?",
+            (id),
+        )
+        payment = cursor.fetchone()
+        if payment:
+            with sqlite3.connect(DATABASE) as connection:
+                cursor = connection.cursor()
+                cursor.execute("DELETE FROM payment WHERE id = ?", (payment[0],))
+                connection.commit()
+                return jsonify(message="Payment deleted successfully"), 200
+        else:
+            return jsonify(message="Payment record not found!"), 404
 
 
 if __name__ == "__main__":
