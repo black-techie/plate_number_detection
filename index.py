@@ -157,7 +157,7 @@ def payments():
         return jsonify(records), 200
 
 
-@app.route("/delete", methods=["DELETE"])
+@app.route("/api/delete_payment", methods=["DELETE"])
 @jwt_required()
 def delete_payment():
     id = request.get_json().get("id")
@@ -169,11 +169,9 @@ def delete_payment():
         )
         payment = cursor.fetchone()
         if payment:
-            with sqlite3.connect(DATABASE) as connection:
-                cursor = connection.cursor()
-                cursor.execute("DELETE FROM payment WHERE id = ?", (payment[0],))
-                connection.commit()
-                return jsonify(message="Payment deleted successfully"), 200
+            cursor.execute("DELETE FROM payment WHERE id = ?", (payment[0],))
+            connection.commit()
+            return jsonify(message="Payment deleted successfully"), 200
         else:
             return jsonify(message="Payment record not found!"), 404
 
