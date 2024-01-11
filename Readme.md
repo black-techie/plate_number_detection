@@ -1,3 +1,3 @@
-pip install opencv-python\n
+pip install opencv-python
 pip install -r requirements.txt
 
