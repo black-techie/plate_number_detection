@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .title-bar {
+            background-color: #3498db;
+            color: #fff;
+            padding: 8px;
+            text-align: center;
+            font-size: 1.0em;
+        }
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px;
+        }
+        .widget {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .widget h3 {
+            color: #333333;
+        }
+        .shortcut-button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <span>Dashboard</span>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="widget">
+            <h3>Date and Time</h3>
+            <div id="dateTime">Loading...</div>
+        </div>
+        
+        <div class="widget">
+            <h3>No of Routes</h3>
+            <div id="routes">{{ _routes }}</div>
+        </div>
+        
+        <div class="widget">
+            <h3>No of Payments</h3>
+            <div id="carsPaid">{{ _payments}}</div>
+        </div>
+        
+        <div class="widget">
+            <h3>Earnings</h3>
+            <div id="earnings">{{ _earnings }} TZS</div>
+        </div>
+
+        <div class="widget">
+            <h3>Errors</h3>
+            <div id="totalMoney"> 0 </div>
+        </div>
+
+        <div class="widget">
+            <h3>No of Admins</h3>
+            <div id="admins">{{ _admins}}</div>
+        </div>
+
+        <!-- Shortcut buttons -->
+        <div class="widget">
+            <h3>New Route</h3>
+            <button class="shortcut-button" onclick="(window.location.assign('/create_route'))">create</button>
+        </div>
+
+        <div class="widget">
+            <h3>New Payment</h3>
+            <button class="shortcut-button" onclick="(window.location.assign('/create_payment'))">create</button>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder data (replace with actual dynamic data or use JavaScript frameworks for dynamic updates)
+        function updateDashboard() {
+            document.getElementById('dateTime').innerHTML = new Date().toLocaleString();
+            // document.getElementById('routes').innerHTML = '100';  // Replace with actual data
+            // document.getElementById('carsPaid').innerHTML = '75';  // Replace with actual data
+            // document.getElementById('earnings').innerHTML = '$5000';  // Replace with actual data
+            // document.getElementById('totalMoney').innerHTML = '$10000';  // Replace with actual data
+            // document.getElementById('admins').innerHTML = 0;  // Replace with actual data
+        }
+
+        // Update dashboard initially
+        updateDashboard();
+
+        // You can use setInterval to update the dashboard at regular intervals
+        // setInterval(updateDashboard, 5000); // Update every 5 seconds, for example
+
+        // Placeholder functions for shortcut buttons
+        function createPayment() {
+            alert('Creating a payment...');
+            // Add logic to navigate to the payment creation page or trigger payment creation
+        }
+
+        function createTransaction() {
+            alert('Creating a transaction...');
+            // Add logic to navigate to the transaction creation page or trigger transaction creation
+        }
+    </script>
+</body>
+</html>

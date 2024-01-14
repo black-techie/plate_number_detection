@@ -1,5 +1,18 @@
-from flask import Flask, request, jsonify
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    make_response,
+    redirect,
+    url_for,
+)
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    decode_token,
+)
 from datetime import datetime
 import sqlite3
 
@@ -13,13 +26,51 @@ jwt = JWTManager(app)
 DATABASE = "./storage/database.db"
 
 
-@app.route("/api/register", methods=["POST"])
+@app.route("/index")
+def index():
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        decoded_token = decode_token(access_token)
+        if str(decoded_token["sub"]["id"]) == request.cookies.get("id"):
+            with sqlite3.connect(DATABASE) as connection:
+                cursor = connection.cursor()
+                cursor.execute("SELECT * FROM payment")
+                payments = cursor.fetchall()
+                cursor = connection.cursor()
+                cursor.execute("SELECT * FROM administration")
+                admins = cursor.fetchall()
+                cursor = connection.cursor()
+                cursor.execute("SELECT * FROM routes")
+                routes = cursor.fetchall()
+
+                earnings = 0
+                for data in payments:
+                    earnings += data[2]
+
+                return render_template(
+                    "index.html",
+                    _routes=len(routes),
+                    _admins=len(admins),
+                    _payments=len(payments),
+                    _earnings="{:,}".format(earnings),
+                )
+        else:
+            return redirect("/login")
+    else:
+        return redirect("/login")
+
+
+@app.route("/register", methods=["GET"])
 def register():
+    return render_template("register.html")
+
+
+@app.route("/api/register_", methods=["POST"])
+def register_():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
     phone = data.get("phone")
-
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
         cursor.execute(
@@ -31,32 +82,53 @@ def register():
     return jsonify(message="Registration successful"), 201
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/login", methods=["GET"])
 def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+    return render_template("login.html")
+
+
+@app.route("/api/login_", methods=["POST"])
+def login_():
+    username = request.form.get("username")
+    password = request.form.get("password")
 
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM administration WHERE username = ?", (username,))
+        cursor.execute(
+            "SELECT * FROM administration WHERE username = ? AND password =?",
+            (username, password),
+        )
         user = cursor.fetchone()
 
         if user and (user[2], password):
             access_token = create_access_token(
                 identity={"username": user[1], "id": user[0]}
             )
-            return jsonify(access_token=access_token, message="successful"), 200
+            response = make_response(redirect(url_for("index")))
+            response.set_cookie("access_token", access_token)
+            response.set_cookie("id", str(user[0]))
+            return response
         else:
-            return jsonify(message="Invalid username or password"), 401
+            return redirect("/login")
 
 
-@app.route("/api/create_route", methods=["POST"])
-@jwt_required()
+@app.route("/create_route", methods=["GET"])
+def routes_():
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        decoded_token = decode_token(access_token)
+        if str(decoded_token["sub"]["id"]) == request.cookies.get("id"):
+            return render_template("route.html")
+        else:
+            return redirect("/login")
+    else:
+        return redirect("/login")
+
+
+@app.route("/api/create_routes", methods=["POST"])
 def create_route():
-    data = request.get_json()
-    origin = data.get("origin")
-    destination = data.get("destination")
+    origin = request.form.get("origin")
+    destination = request.form.get("destination")
 
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
@@ -65,7 +137,7 @@ def create_route():
             (origin, destination),
         )
         connection.commit()
-    return jsonify(message="route created successful"), 201
+    return redirect("/index")
 
 
 @app.route("/api/all_routes", methods=["GET"])
@@ -83,14 +155,34 @@ def routes():
         return jsonify(records), 200
 
 
+@app.route("/create_payment", methods=["GET"])
+def payment_():
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        decoded_token = decode_token(access_token)
+        if str(decoded_token["sub"]["id"]) == request.cookies.get("id"):
+            with sqlite3.connect(DATABASE) as connection:
+                cursor = connection.cursor()
+                cursor.execute("SELECT * FROM routes")
+                routes = []
+                for route in cursor.fetchall():
+                    routes.append(
+                        {"id": route[0], "location": route[1] + ", " + route[2]}
+                    )
+                print(routes)
+            return render_template("pay.html", routes=routes)
+        else:
+            return redirect("/login")
+    else:
+        return redirect("/login")
+
+
 @app.route("/api/create_payment", methods=["POST"])
-@jwt_required()
 def create_payment():
     now = datetime.now()
-    data = request.get_json()
-    plate_number = data.get("plate_number")
-    amount = data.get("amount")
-    route_id = data.get("route_id")
+    plate_number = request.form.get("plate_number")
+    amount = request.form.get("amount")
+    route_id = int(request.form.get("route"))
 
     with sqlite3.connect(DATABASE) as connection:
         cursor = connection.cursor()
@@ -99,7 +191,7 @@ def create_payment():
             (plate_number, amount, route_id, False, now.strftime("%d/%m/%Y %H:%M:%S")),
         )
         connection.commit()
-    return jsonify(message="Payment created successful"), 201
+    return redirect("/index")
 
 
 @app.route("/api/validate_payment", methods=["POST"])

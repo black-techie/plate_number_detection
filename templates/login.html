@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .login-container label, .login-container input {
+            display: block;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login-container button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .warning-message {
+            color: #ff0000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm" method="post", action="/api/login_">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <p class="warning-message" id="warningMessage">Incorrect username or password. Please try again.</p>
+
+            <button type="submit" onclick="validateLogin()">Login</button>
+            <button onclick="(window.location.assign('/register'))" style="margin-top: 5px; background-color: rgb(53, 98, 234);">Register</button>
+        </form>
+    </div>
+
+    <script>
+        function validateLogin() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            var warningMessage = document.getElementById('warningMessage');
+
+            // Add your login validation logic here
+            // For simplicity, let's just show an alert for now
+            // if (username === 'your_username' && password === 'your_password') {
+            //     alert('Login successful!');
+            // } else {
+            //     // Show warning message
+            //     warningMessage.style.display = 'block';
+            // }
+        }
+    </script>
+</body>
+</html>
